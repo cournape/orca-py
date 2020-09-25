@@ -179,6 +179,27 @@ class TestGridCompatLayer(unittest.TestCase):
         assert value == 0
 
 
+class TestGridLook(unittest.TestCase):
+    def test_lock(self):
+        # Given
+        grid = O(".A.\n*.c")
+
+        # When
+        value = grid.lock(0, 1)
+
+        # Then
+        assert grid.is_locked(0, 1) is True
+        assert grid.is_locked(0, 0) is False
+
+        # When
+        value = grid.reset_locks()
+
+        # Then
+        for x in range(grid.cols):
+            for y in range(grid.rows):
+                assert grid.is_locked(x, y) is False
+
+
 class TestGridListen(unittest.TestCase):
     def test_listen_default(self):
         # Given

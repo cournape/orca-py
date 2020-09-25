@@ -104,6 +104,19 @@ class OrcaGrid:
 
         self.reset_locks()
 
+    def iter_rows(self):
+        return iter(self._state)
+
+    # Locking utils
+    def lock(self, x, y):
+        self._locks[y][x] = True
+
+    def is_operator_locked(self, operator):
+        return self.is_locked(operator.x, operator.y)
+
+    def is_locked(self, x, y):
+        return self._locks[y][x]
+
     def reset_locks(self):
         """Reset locks.
 
@@ -111,7 +124,13 @@ class OrcaGrid:
         """
         self._locks = [[False for _ in range(self.cols)] for _ in range(self.rows)]
 
+    # Peek/poke/listen
     def listen(self, port):
+        """Listen to the given port.
+
+        This essentially peeks at the given port's position, taking into
+        account the port default.
+        """
         g = self.peek(port.x, port.y)
         if g in (DOT_GLYPH, BANG_GLYPH) and port.default:
             return port.default
@@ -119,6 +138,11 @@ class OrcaGrid:
             return g
 
     def listen_as_value(self, port):
+        """Listen to the given port's value.
+
+        This listen to the port's glyph, and translates it into a numerical
+        value, taking into account the port clamp.
+        """
         glyph = self.listen(port)
         return port.clamp(self.value_of(glyph))
 

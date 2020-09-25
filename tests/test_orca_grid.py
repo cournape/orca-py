@@ -8,9 +8,9 @@ from orca.grid import (
     DOT_GLYPH,
     BANG_GLYPH,
     glyph_to_value,
-    InputPort,
     OrcaGrid,
 )
+from orca.ports import InputPort
 
 
 # This contains the list of glyph that will give back a value.

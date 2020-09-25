@@ -39,6 +39,9 @@ class IOperator(abc.ABC):
         Note: the frame is assumed to match the state of the grid given at
         construction time."""
 
+    def __str__(self):
+        return self.name
+
     def run(self, frame, force=False):
         payload = self.operation(frame, force)
 

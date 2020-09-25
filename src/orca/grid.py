@@ -1,3 +1,6 @@
+import pathlib
+
+
 BANG_GLYPH = "*"
 CURSOR_GLYPH = "@"
 CROSS_GLYPH = "+"
@@ -67,6 +70,19 @@ class OrcaGrid:
 
     It keeps track of the internal grid state, the locks.
     """
+
+    @classmethod
+    def from_path(cls, path):
+        path = pathlib.Path(path)
+        size = path.stat().st_size
+
+        if size > 1024 ** 2:
+            raise ValueError(f"File {path} too big.")
+
+        with open(path, "rt") as fp:
+            # We can read all in memory because we checked the file was not crazy
+            # large
+            return cls.from_string(fp.read())
 
     @classmethod
     def from_string(cls, s):

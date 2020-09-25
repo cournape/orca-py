@@ -109,6 +109,17 @@ class TestGridPeekAndPoke(unittest.TestCase):
         # Then
         assert glyph == "3"
 
+    def test_poke_out_bounds(self):
+        # Given
+        grid = O(".A.\n...")
+
+        # When
+        grid.poke(3, 3, "3")
+        glyph = grid.peek(3, 3)
+
+        # Then
+        assert glyph is None
+
 
 class TestGridCompatLayer(unittest.TestCase):
     def test_glyph_at(self):

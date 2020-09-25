@@ -17,7 +17,7 @@ GLYPH_TABLE = [
     "8",
     "9",
     "a",
-    "b",  #  0-11
+    "b",
     "c",
     "d",
     "e",
@@ -29,7 +29,7 @@ GLYPH_TABLE = [
     "k",
     "l",
     "m",
-    "n",  # 12-23
+    "n",
     "o",
     "p",
     "q",
@@ -41,7 +41,7 @@ GLYPH_TABLE = [
     "w",
     "x",
     "y",
-    "z",  # 24-35
+    "z",
 ]
 GLYPH_TABLE_SIZE = len(GLYPH_TABLE)
 INDEX_TO_GLYPH = {k: i for i, k in enumerate(GLYPH_TABLE)}

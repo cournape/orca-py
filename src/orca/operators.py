@@ -2,7 +2,7 @@ import abc
 import logging
 import math
 
-from orca.grid import DOT_GLYPH
+from orca.grid import BANG_GLYPH, DOT_GLYPH
 from orca.ports import InputPort, OutputPort
 
 
@@ -56,6 +56,31 @@ class IOperator(abc.ABC):
                 raise ValueError("Output bang not implemented yet")
             else:
                 self._output(payload)
+
+    def erase(self):
+        self._grid.poke(self.x, self.y, DOT_GLYPH)
+
+    def explode(self):
+        self._grid.poke(self.x, self.y, BANG_GLYPH)
+
+    def move(self, offset_x, offset_y):
+        new_x = self.x + offset_x
+        new_y = self.y + offset_y
+        if not self._grid.is_inside(new_x, new_y):
+            self.explode()
+            return
+
+        collider = self._grid.peek(new_x, new_y)
+        if collider not in (BANG_GLYPH, DOT_GLYPH):
+            self.explode()
+            return
+
+        self.erase()
+        self.x += offset_x
+        self.y += offset_y
+        self._grid.poke(self.x, self.y, self.glyph)
+        if self._grid.is_inside(self.x, self.y):
+            self._grid.lock(self.x, self.y)
 
     @property
     def _output_port(self):
@@ -139,3 +164,38 @@ class Clock(IOperator):
 
         value = math.floor(frame / rate) % mod
         return self._grid.key_of(value)
+
+
+class East(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "east",
+            "Move eastwards or bang",
+            glyph="e",
+            is_passive=is_passive,
+        )
+        self.do_draw = False
+
+    def operation(self, frame, force=False):
+        self.move(1, 0)
+
+
+class Bang(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "bang",
+            "Bangs neighboring operands",
+            glyph=BANG_GLYPH,
+            is_passive=is_passive,
+        )
+        self.do_draw = False
+
+    def operation(self, frame, force=False):
+        self.do_draw = False
+        self.erase()

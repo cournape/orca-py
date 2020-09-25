@@ -162,6 +162,10 @@ class OrcaGrid:
         glyph = self.listen(port)
         return port.clamp(self.value_of(glyph))
 
+    def is_inside(self, x, y):
+        """Returns True if the given coordinates are inside the grid boundaries."""
+        return x >= 0 and x < self.cols and y >= 0 and y < self.rows
+
     def peek(self, x, y):
         """Returns the glyph at the given indices.
 

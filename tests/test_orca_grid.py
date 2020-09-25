@@ -3,7 +3,14 @@ import unittest
 from hypothesis import given
 from hypothesis.strategies import characters, sampled_from
 
-from orca.grid import GLYPH_TABLE, DOT_GLYPH, BANG_GLYPH, glyph_to_value, OrcaGrid
+from orca.grid import (
+    GLYPH_TABLE,
+    DOT_GLYPH,
+    BANG_GLYPH,
+    glyph_to_value,
+    InputPort,
+    OrcaGrid,
+)
 
 
 # This contains the list of glyph that will give back a value.
@@ -167,6 +174,108 @@ class TestGridCompatLayer(unittest.TestCase):
 
         # When
         value = grid.value_at(-2, 1)
+
+        # Then
+        assert value == 0
+
+
+class TestGridListen(unittest.TestCase):
+    def test_listen_default(self):
+        # Given
+        grid = O(".A.\n*.c")
+
+        # When
+        port = InputPort(0, 0)
+        value = grid.listen(port)
+
+        # Then
+        assert value == DOT_GLYPH
+
+        # When
+        port = InputPort(0, 1)
+        value = grid.listen(port)
+
+        # Then
+        assert value == BANG_GLYPH
+
+        # When
+        # we listen to a dot port with a default value
+        port = InputPort(0, 0, default="+")
+        value = grid.listen(port)
+
+        # Then
+        # we get the default value
+        assert value == "+"
+
+        # When
+        # we listen to a bang port with a default value
+        port = InputPort(0, 1, default="+")
+        value = grid.listen(port)
+
+        # Then
+        # we get the default value
+        assert value == "+"
+
+        # When
+        port = InputPort(1, 0, default="+")
+        value = grid.listen(port)
+
+        # Then
+        assert value == "A"
+
+        # When
+        port = InputPort(3, 3, default="+")
+        value = grid.listen(port)
+
+        # Then
+        assert value is None
+
+    def test_listen_as_value_default(self):
+        # Given
+        grid = O(".A.\n*.c")
+
+        # When
+        port = InputPort(0, 0)
+        value = grid.listen_as_value(port)
+
+        # Then
+        assert value == 0
+
+        # When
+        port = InputPort(0, 1)
+        value = grid.listen_as_value(port)
+
+        # Then
+        assert value == 0
+
+        # When
+        # we listen to a dot port with a default value
+        port = InputPort(0, 0, default="3")
+        value = grid.listen_as_value(port)
+
+        # Then
+        # we get the default value
+        assert value == 3
+
+        # When
+        # we listen to a bang port with a default value
+        port = InputPort(0, 1, default="4")
+        value = grid.listen_as_value(port)
+
+        # Then
+        # we get the default value
+        assert value == 4
+
+        # When
+        port = InputPort(1, 0, default="+")
+        value = grid.listen_as_value(port)
+
+        # Then
+        assert value == 10
+
+        # When
+        port = InputPort(3, 3, default="+")
+        value = grid.listen_as_value(port)
 
         # Then
         assert value == 0

@@ -105,14 +105,22 @@ class OrcaGrid:
         self.reset_locks()
 
     def reset_locks(self):
-        """ Reset locks.
+        """Reset locks.
 
         Every internal lock will be set as unlock.
         """
-        self._locks = [
-            [False for _ in range(self.cols)]
-            for _ in range(self.rows)
-        ]
+        self._locks = [[False for _ in range(self.cols)] for _ in range(self.rows)]
+
+    def listen(self, port):
+        g = self.peek(port.x, port.y)
+        if g in (DOT_GLYPH, BANG_GLYPH) and port.default:
+            return port.default
+        else:
+            return g
+
+    def listen_as_value(self, port):
+        glyph = self.listen(port)
+        return port.clamp(self.value_of(glyph))
 
     def peek(self, x, y):
         """Returns the glyph at the given indices.
@@ -125,7 +133,7 @@ class OrcaGrid:
             return None
 
     def poke(self, x, y, value):
-        """ Will set the given value at the given position in the grid.
+        """Will set the given value at the given position in the grid.
 
         Will do nothing if outside the grid boundaries.
         """
@@ -143,3 +151,32 @@ class OrcaGrid:
 
     def value_of(self, g):
         return glyph_to_value(g)
+
+
+def default_clamp(v):
+    return v
+
+
+# Ports represent input/output on the grid. Port instances encompass some of
+# the details about how to interpret the given value in the grid.
+class IPort:
+    def __init__(self, x, y, *, clamp=None, default=None):
+        self.x = x
+        self.y = y
+
+        self.clamp = clamp or default_clamp
+        self.default = default
+
+
+class InputPort(IPort):
+    pass
+
+
+class OutputPort(IPort):
+    def __init__(
+        self, x, y, *, clamp=None, default=None, is_sensitive=False, is_bang=False
+    ):
+        super().__init__(x, y, clamp=clamp, default=default)
+
+        self.is_sensitive = is_sensitive
+        self.is_bang = is_bang

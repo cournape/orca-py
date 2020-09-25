@@ -101,8 +101,12 @@ class IOperator(abc.ABC):
             else:
                 return True
 
-    def _output(self, glyph):
-        output_port = self._output_port
+    def _output(self, glyph, port=None):
+        if port is None:
+            output_port = self._output_port
+        else:
+            output_port = port
+
         if output_port is None:
             logging.warn(
                 "No output port for operator %s @ (%d, %d)", self.name, self.x, self.y
@@ -181,6 +185,41 @@ class East(IOperator):
 
     def operation(self, frame, force=False):
         self.move(1, 0)
+
+
+class Generator(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "generator",
+            "Write operands with offset",
+            glyph="g",
+            is_passive=is_passive,
+        )
+        self.ports.update(
+            {
+                "x": InputPort(x - 3, y),
+                "y": InputPort(x - 2, y),
+                "len": InputPort(x - 1, y, clamp=lambda x: max(x, 1)),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        length = self._grid.listen_as_value(self.ports["len"])
+        x = self._grid.listen_as_value(self.ports["x"])
+        y = self._grid.listen_as_value(self.ports["y"]) + 1
+
+        for offset in range(length):
+            input_port = InputPort(self.x + offset + 1, self.y)
+            output_port = OutputPort(self.x + x + offset, self.y + y)
+            self.ports.update({
+                f"input{offset}": input_port,
+                f"output{offset}": output_port,
+            })
+            res = self._grid.listen(input_port)
+            self._output(res, output_port)
 
 
 class Bang(IOperator):

@@ -2,7 +2,7 @@ import math
 import unittest
 
 from orca.grid import OrcaGrid
-from orca.operators import Add, Clock
+from orca.operators import Add, Clock, Generator
 
 
 O = OrcaGrid.from_string
@@ -85,3 +85,26 @@ class TestClockOperator(unittest.TestCase):
             payload = clock.operation(frame)
             # Then
             assert payload == str(math.floor(frame / rate) % mod)
+
+
+class TestGeneratorOperator(unittest.TestCase):
+    def test_operation(self):
+        # given
+        grid = O(f".0.GE\n.....\n.....")
+        gen = Generator(grid, 3, 0)
+
+        # when
+        gen.operation(0)
+
+        # then
+        assert grid.peek(3, 1) == "E"
+
+        # given
+        grid = O(f".1.GE\n.....\n.....")
+        gen = Generator(grid, 3, 0)
+
+        # when
+        gen.operation(0)
+
+        # then
+        assert grid.peek(3, 2) == "E"

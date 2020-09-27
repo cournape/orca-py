@@ -225,6 +225,32 @@ class Generator(IOperator):
             self._output(res, output_port)
 
 
+class Increment(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "increment",
+            "Increment operator southward",
+            glyph="i",
+            is_passive=is_passive,
+        )
+        self.ports.update(
+            {
+                "step": InputPort(x - 1, y, default="1"),
+                "mod": InputPort(x + 1, y),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1, is_sensitive=True),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        step = self._grid.listen_as_value(self.ports["step"])
+        mod = self._grid.listen_as_value(self.ports["mod"])
+        out = self._grid.listen_as_value(self.ports[OUTPUT_PORT_NAME])
+        return self._grid.key_of((out + step) % (mod if mod > 0 else 36))
+
+
 class Bang(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(

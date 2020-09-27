@@ -36,13 +36,14 @@ def init_colors():
     pass
 
 
-from orca.operators import Add, Bang, Clock, East, Generator
+from orca.operators import Add, Bang, Clock, East, Generator, Increment
 
 _CHAR_TO_OPERATOR_CLASS = {
     "a": Add,
     "c": Clock,
     "e": East,
     "g": Generator,
+    "i": Increment,
     BANG_GLYPH: Bang,
     #COMMENT_GLYPH: Comment,
 }

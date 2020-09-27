@@ -2,7 +2,7 @@ import math
 import unittest
 
 from orca.grid import OrcaGrid
-from orca.operators import Add, Clock, Generator
+from orca.operators import Add, Clock, Generator, Increment
 
 
 O = OrcaGrid.from_string
@@ -108,3 +108,26 @@ class TestGeneratorOperator(unittest.TestCase):
 
         # then
         assert grid.peek(3, 2) == "E"
+
+
+class TestIncrementOperator(unittest.TestCase):
+    def test_operation(self):
+        # given
+        grid = O(f"..I4.\n.....")
+        inc = Increment(grid, 2, 0)
+
+        # when
+        payload = inc.operation(0)
+
+        # then
+        assert payload == "1"
+
+        # given
+        grid = O(f"..I4.\n..2..")
+        inc = Increment(grid, 2, 0)
+
+        # when
+        payload = inc.operation(0)
+
+        # then
+        assert payload == "3"

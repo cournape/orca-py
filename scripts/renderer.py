@@ -36,7 +36,7 @@ def init_colors():
     pass
 
 
-from orca.operators import Add, Bang, Clock, East, Generator, Increment, Substract
+from orca.operators import Add, Bang, Clock, East, Generator, Increment, Substract, Midi
 
 _CHAR_TO_OPERATOR_CLASS = {
     "a": Add,
@@ -46,6 +46,7 @@ _CHAR_TO_OPERATOR_CLASS = {
     "g": Generator,
     "i": Increment,
     BANG_GLYPH: Bang,
+    ":": Midi,
     # COMMENT_GLYPH: Comment,
 }
 
@@ -77,7 +78,7 @@ def parse_grid(grid):
 
 
 def update_grid(grid, frame):
-    grid.reset_locks()
+    grid.reset_for_frame()
 
     operators = parse_grid(grid)
     logger.debug("Found %d operators", len(operators))
@@ -88,7 +89,8 @@ def update_grid(grid, frame):
         )
         if grid.is_locked(operator.x, operator.y):
             logger.debug(
-                "operator %s @ %d, %d is locked", operator, operator.x, operator.y
+                "Position @ %d, %d is locked (would be operator %s)",
+                operator.x, operator.y, operator
             )
             continue
         operator.run(frame)

@@ -1,3 +1,4 @@
+import dataclasses
 import pathlib
 
 
@@ -65,6 +66,15 @@ def glyph_to_value(glyph):
         return glyph_table_index_of(glyph)
 
 
+@dataclasses.dataclass(eq=True, frozen=True)
+class MidiNoteOnEvent:
+    channel: int
+    octave: int
+    note: int
+    velocity: int
+    length: int
+
+
 class OrcaGrid:
     """The internal orca grid representation.
 
@@ -120,8 +130,17 @@ class OrcaGrid:
 
         self.reset_locks()
 
+        self._midi_events = set()
+
     def iter_rows(self):
         return iter(self._state)
+
+    def reset_for_frame(self):
+        """ This method should be called before starting any grid-related
+        operation for a new frame.
+        """
+        self.reset_locks()
+        self._midi_events.clear()
 
     # Locking utils
     def lock(self, x, y):
@@ -185,6 +204,10 @@ class OrcaGrid:
             self._state[y][x] = value
         except IndexError:
             pass
+
+    # Midi IO
+    def push_midi(self, event):
+        self._midi_events.add(event)
 
     # Orca-compat 'layer', to help porting from orca nodejs code.
     def glyph_at(self, x, y):

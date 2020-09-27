@@ -2,7 +2,7 @@ import abc
 import logging
 import math
 
-from orca.grid import BANG_GLYPH, DOT_GLYPH
+from orca.grid import BANG_GLYPH, DOT_GLYPH, MidiNoteOnEvent
 from orca.ports import InputPort, OutputPort
 
 
@@ -49,7 +49,7 @@ class IOperator(abc.ABC):
             if isinstance(port, OutputPort) and port.is_bang:
                 continue
             logger.debug(
-                "Ops %d, %d: locking port @ %d, %d", self.x, self.y, port.x, port.y
+                "Ops %s (%d, %d): locking port @ %d, %d", self.name, self.x, self.y, port.x, port.y
             )
             self._grid.lock(port.x, port.y)
 
@@ -65,6 +65,12 @@ class IOperator(abc.ABC):
 
     def explode(self):
         self._grid.poke(self.x, self.y, BANG_GLYPH)
+
+    def has_neighbor(self, glyph):
+        for x, y in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            if self._grid.peek(self.x + x, self.y + y) == glyph:
+                return True
+        return False
 
     def move(self, offset_x, offset_y):
         new_x = self.x + offset_x
@@ -295,3 +301,54 @@ class Bang(IOperator):
     def operation(self, frame, force=False):
         self.do_draw = False
         self.erase()
+
+
+class Midi(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "midi",
+            "Send MIDI note",
+            glyph=":",
+            is_passive=True,
+        )
+
+        self.ports.update({
+            "channel": InputPort(self.x + 1, self.y),
+            "octave": InputPort(self.x + 2, self.y, clamp=lambda x: min(max(0, x), 8)),
+            "note": InputPort(self.x + 3, self.y),
+            "velocity": InputPort(
+                self.x + 4, self.y, default="f",
+                clamp=lambda x: min(max(0, x), 16)
+            ),
+            "length": InputPort(
+                self.x + 5, self.y,
+                clamp=lambda x: min(max(0, x), 32)
+            ),
+        })
+
+    def operation(self, frame, force=False):
+        if not self.has_neighbor(BANG_GLYPH) and not force:
+            return
+
+        for port_name in "channel", "octave", "note":
+            if self._grid.listen(self.ports[port_name]) == DOT_GLYPH:
+                return
+
+        note = self._grid.listen(self.ports["note"])
+        if not (
+            (ord(note) >= ord('a') and ord(note) <= ord('g')) or
+            (ord(note) >= ord('A') and ord(note) <= ord('G'))
+        ):
+            return
+
+        channel = self._grid.listen_as_value(self.ports["channel"])
+        if channel > 15:
+            return
+        octave = self._grid.listen_as_value(self.ports["octave"])
+        velocity = self._grid.listen_as_value(self.ports["velocity"])
+        length = self._grid.listen_as_value(self.ports["length"])
+
+        self._grid.push_midi(MidiNoteOnEvent(channel, octave, note, velocity, length))

@@ -145,6 +145,26 @@ class Add(IOperator):
         return self._grid.key_of(index)
 
 
+class Substraction(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid, x, y, "add", "Output difference of inputs", glyph="a", is_passive=is_passive
+        )
+
+        self.ports.update(
+            {
+                "a": InputPort(x - 1, y),
+                "b": InputPort(x + 1, y),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1, is_sensitive=True),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        a = self._grid.listen_as_value(self.ports["a"])
+        b = self._grid.listen_as_value(self.ports["b"])
+        return self._grid.key_of(abs(b - a))
+
+
 class Clock(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(
@@ -217,10 +237,12 @@ class Generator(IOperator):
         for offset in range(length):
             input_port = InputPort(self.x + offset + 1, self.y)
             output_port = OutputPort(self.x + x + offset, self.y + y)
-            self.ports.update({
-                f"input{offset}": input_port,
-                f"output{offset}": output_port,
-            })
+            self.ports.update(
+                {
+                    f"input{offset}": input_port,
+                    f"output{offset}": output_port,
+                }
+            )
             res = self._grid.listen(input_port)
             self._output(res, output_port)
 

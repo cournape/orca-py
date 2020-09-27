@@ -36,16 +36,17 @@ def init_colors():
     pass
 
 
-from orca.operators import Add, Bang, Clock, East, Generator, Increment
+from orca.operators import Add, Bang, Clock, East, Generator, Increment, Substraction
 
 _CHAR_TO_OPERATOR_CLASS = {
     "a": Add,
+    "b": Substraction,
     "c": Clock,
     "e": East,
     "g": Generator,
     "i": Increment,
     BANG_GLYPH: Bang,
-    #COMMENT_GLYPH: Comment,
+    # COMMENT_GLYPH: Comment,
 }
 
 
@@ -54,7 +55,7 @@ def operator_factory(grid, grid_char, x, y):
 
     Note: it will return None if no Operator class is found.
     """
-    klass =  _CHAR_TO_OPERATOR_CLASS.get(grid_char.lower())
+    klass = _CHAR_TO_OPERATOR_CLASS.get(grid_char.lower())
     if klass is not None:
         return klass(grid, x, y, is_passive=grid_char.isupper())
     else:
@@ -82,9 +83,13 @@ def update_grid(grid, frame):
     logger.debug("Found %d operators", len(operators))
 
     for operator in operators:
-        logger.debug("Looking at operator %s, pos %d, %d", operator, operator.x, operator.y)
+        logger.debug(
+            "Looking at operator %s, pos %d, %d", operator, operator.x, operator.y
+        )
         if grid.is_locked(operator.x, operator.y):
-            logger.debug("operator %s @ %d, %d is locked", operator, operator.x, operator.y)
+            logger.debug(
+                "operator %s @ %d, %d is locked", operator, operator.x, operator.y
+            )
             continue
         operator.run(frame)
 

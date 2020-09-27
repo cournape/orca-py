@@ -145,10 +145,16 @@ class Add(IOperator):
         return self._grid.key_of(index)
 
 
-class Substraction(IOperator):
+class Substract(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(
-            grid, x, y, "add", "Output difference of inputs", glyph="a", is_passive=is_passive
+            grid,
+            x,
+            y,
+            "substract",
+            "Output difference of inputs",
+            glyph="b",
+            is_passive=is_passive,
         )
 
         self.ports.update(

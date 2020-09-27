@@ -2,7 +2,7 @@ import math
 import unittest
 
 from orca.grid import OrcaGrid
-from orca.operators import Add, Clock, Generator, Increment
+from orca.operators import Add, Clock, Generator, Increment, Substract
 
 
 O = OrcaGrid.from_string
@@ -49,6 +49,29 @@ class TestAddOperator(unittest.TestCase):
 
         # Then
         assert payload == "c"
+
+
+class TestSubstractOperator(unittest.TestCase):
+    def test_operation(self):
+        # Given
+        grid = O("0B2\n...")
+        sub = Substract(grid, 1, 0)
+
+        # When
+        payload = sub.operation(0)
+
+        # Then
+        assert payload == "2"
+
+        # Given
+        grid = O("1B4\n...")
+        sub = Substract(grid, 1, 0)
+
+        # When
+        payload = sub.operation(0)
+
+        # Then
+        assert payload == "3"
 
 
 class TestClockOperator(unittest.TestCase):

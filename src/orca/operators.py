@@ -303,6 +303,12 @@ class Bang(IOperator):
         self.erase()
 
 
+_NOTES_VALUES = (
+    "C", "c", "D", "d", "E", "F", "f", "G", "g", "A", "a", "B"
+)
+NOTE_TO_INDEX = {k: i for i, k in enumerate(_NOTES_VALUES)}
+
+
 class Midi(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(
@@ -338,10 +344,7 @@ class Midi(IOperator):
                 return
 
         note = self._grid.listen(self.ports["note"])
-        if not (
-            (ord(note) >= ord('a') and ord(note) <= ord('g')) or
-            (ord(note) >= ord('A') and ord(note) <= ord('G'))
-        ):
+        if not NOTE_TO_INDEX:
             return
 
         channel = self._grid.listen_as_value(self.ports["channel"])

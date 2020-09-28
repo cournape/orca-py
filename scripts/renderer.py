@@ -103,8 +103,19 @@ def render_grid(window, grid):
         window.addstr("".join(rendered_row))
 
 
-def main(screen, path):
+def main(screen, path, use_midi):
     grid = OrcaGrid.from_path(path)
+    if use_midi:
+        from orca.midi import MidiIO, App
+        print("Init midi...")
+        midi_io = MidiIO()
+        app = App(midi_io)
+    else:
+        class DummyApp:
+            def push_note(self, *a, **kw):
+                pass
+            def run_midi(self):
+                pass
 
     top_x = 20
     top_y = 5
@@ -137,13 +148,23 @@ def main(screen, path):
 
     window.refresh()
 
+    notes_index = (
+        "C", "c", "D", "d", "E", "F", "f", "G", "g", "A", "a", "B"
+    )
+
     while True:
         k = window.getch()
         if k == ord(" "):
             frame += 1
             logging.debug("Frame %r", frame)
             update_grid(grid, frame)
+            for event in grid._midi_events:
+                note = notes_index.index(event.note)
+                note = event.octave * 12 + note + 24
+                logger.debug("Playing on note %d", note)
+                app.push_note(event.channel, note, event.velocity)
 
+        app.run_midi()
         render_top_banner()
         screen.refresh()
 
@@ -156,6 +177,7 @@ def main(screen, path):
 def main_cli(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("path", help="Path to .orca file.")
+    p.add_argument("--use-midi", action="store_true")
 
     ns = p.parse_args(argv)
 
@@ -169,7 +191,7 @@ def main_cli(argv=None):
             with keypad(screen):
                 # Hide cursor
                 curses.curs_set(0)
-                main(screen, ns.path)
+                main(screen, ns.path, ns.use_midi)
                 curses.napms(2000)
     finally:
         curses.endwin()

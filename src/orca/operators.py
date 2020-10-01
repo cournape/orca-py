@@ -34,7 +34,7 @@ class IOperator(abc.ABC):
     def operation(self, frame, force=False):
         """Run the operator for the given frame and return the payload.
 
-        This does not modify the grid.
+        This may modify the grid.
 
         Note: the frame is assumed to match the state of the grid given at
         construction time."""

@@ -110,8 +110,11 @@ from orca.operators import (
     East,
     Generator,
     Increment,
+    North,
+    South,
     Substract,
     Midi,
+    West,
 )
 
 _CHAR_TO_OPERATOR_CLASS = {
@@ -121,6 +124,9 @@ _CHAR_TO_OPERATOR_CLASS = {
     "e": East,
     "g": Generator,
     "i": Increment,
+    "n": North,
+    "s": South,
+    "w": West,
     BANG_GLYPH: Bang,
     ":": Midi,
     COMMENT_GLYPH: Comment,

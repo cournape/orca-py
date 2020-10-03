@@ -225,6 +225,7 @@ class East(IOperator):
 
     def operation(self, frame, force=False):
         self.move(1, 0)
+        self.is_passive = False
 
 
 class Generator(IOperator):
@@ -288,6 +289,60 @@ class Increment(IOperator):
         mod = self._grid.listen_as_value(self.ports["mod"])
         out = self._grid.listen_as_value(self.ports[OUTPUT_PORT_NAME])
         return self._grid.key_of((out + step) % (mod if mod > 0 else 36))
+
+
+class North(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "north",
+            "Move northward or bang",
+            glyph="n",
+            is_passive=is_passive,
+        )
+        self.do_draw = False
+
+    def operation(self, frame, force=False):
+        self.move(0, -1)
+        self.is_passive = False
+
+
+class South(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "south",
+            "Move southward or bang",
+            glyph="s",
+            is_passive=is_passive,
+        )
+        self.do_draw = False
+
+    def operation(self, frame, force=False):
+        self.move(0, 1)
+        self.is_passive = False
+
+
+class West(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "west",
+            "Move westward or bang",
+            glyph="w",
+            is_passive=is_passive,
+        )
+        self.do_draw = False
+
+    def operation(self, frame, force=False):
+        self.move(-1, 0)
+        self.is_passive = False
 
 
 class Bang(IOperator):

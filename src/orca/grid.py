@@ -3,7 +3,7 @@ import pathlib
 
 
 BANG_GLYPH = "*"
-CURSOR_GLYPH = "@"
+CURSOR_GLYPH = "~"
 CROSS_GLYPH = "+"
 DOT_GLYPH = "."
 COMMENT_GLYPH = "#"

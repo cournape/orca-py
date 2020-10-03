@@ -1,10 +1,19 @@
 import argparse
 import contextlib
 import curses
+import dataclasses
+import enum
 import logging
 import sys
 
-from orca.grid import BANG_GLYPH, COMMENT_GLYPH, DOT_GLYPH, EMPTY_GLYPH, OrcaGrid
+from orca.grid import (
+    BANG_GLYPH,
+    COMMENT_GLYPH,
+    CURSOR_GLYPH,
+    DOT_GLYPH,
+    EMPTY_GLYPH,
+    OrcaGrid,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -31,12 +40,79 @@ def cbreak():
     curses.nocbreak()
 
 
+@dataclasses.dataclass
+class Cursor:
+    x: int
+    y: int
+
+    height: int
+    width: int
+
+    def move_left(self):
+        self._move_relative(-1, 0)
+
+    def move_right(self):
+        self._move_relative(1, 0)
+
+    def move_up(self):
+        self._move_relative(0, -1)
+
+    def move_down(self):
+        self._move_relative(0, 1)
+
+    def _move_relative(self, x, y):
+        self.x = max(0, min(self.x + x, self.width - 1))
+        self.y = max(0, min(self.y + y, self.height - 1))
+
+
+@enum.unique
+class CursesColor(enum.IntEnum):
+    DEFAULT = -1
+    BLACK = 0
+    RED = 1
+    GREEN = 2
+    YELLOW = 3
+    BLUE = 4
+    MAGENTA = 5
+    CYAN = 6
+    WHITE = 7
+
+
+N_COLOR_BASE = len(CursesColor)
+
+
 def init_colors():
-    # TODO: implement basic colors etup
-    pass
+    curses.use_default_colors()
+
+    # Undocumented: -1 refers to default color, assuming use_default_colors has
+    # been called first
+    for i in range(N_COLOR_BASE):
+        for j in range(N_COLOR_BASE):
+            c = 1 + i * N_COLOR_BASE + j
+            fg = i - 1
+            bg = j - 1
+            curses.init_pair(c, fg, bg)
 
 
-from orca.operators import Add, Bang, Clock, Comment, East, Generator, Increment, Substract, Midi
+def pair_to_index(fg, bg):
+    return 1 + (fg + 1) * N_COLOR_BASE + bg + 1
+
+
+def color_from_pair(fg, bg):
+    return curses.color_pair(pair_to_index(fg, bg))
+
+
+from orca.operators import (
+    Add,
+    Bang,
+    Clock,
+    Comment,
+    East,
+    Generator,
+    Increment,
+    Substract,
+    Midi,
+)
 
 _CHAR_TO_OPERATOR_CLASS = {
     "a": Add,
@@ -90,7 +166,9 @@ def update_grid(grid, frame):
         if grid.is_locked(operator.x, operator.y):
             logger.debug(
                 "Position @ %d, %d is locked (would be operator %s)",
-                operator.x, operator.y, operator
+                operator.x,
+                operator.y,
+                operator,
             )
             continue
         operator.run(frame)
@@ -120,13 +198,31 @@ def main(screen, path):
     window = curses.newwin(grid.rows, grid.cols + 1, top_y, top_x)
     window.keypad(True)
 
+    cursor = Cursor(0, 0, grid.rows, grid.cols)
+
     def clear_window():
         for i in range(grid.rows):
             window.move(i, 0)
             window.addstr(" " * grid.cols)
 
+    def draw_cursor(grid, cursor):
+        g = grid.peek(cursor.x, cursor.y)
+        if g in (DOT_GLYPH, EMPTY_GLYPH):
+            glyph = CURSOR_GLYPH
+        else:
+            glyph = g
+
+        window.move(cursor.y, cursor.x)
+        window.addch(
+            glyph,
+            curses.A_REVERSE
+            | curses.A_BOLD
+            | color_from_pair(CursesColor.YELLOW, CursesColor.DEFAULT),
+        )
+
     def render_top_banner():
         screen.addstr(0, 0, f"Frame: {frame}")
+        screen.addstr(1, 0, f"Cursor new pos: {cursor.x, cursor.y}")
 
     clear_window()
 
@@ -134,6 +230,7 @@ def main(screen, path):
     screen.refresh()
 
     render_grid(window, grid)
+    draw_cursor(grid, cursor)
 
     window.refresh()
 
@@ -143,12 +240,23 @@ def main(screen, path):
             frame += 1
             logging.debug("Frame %r", frame)
             update_grid(grid, frame)
+        elif k == curses.KEY_UP:
+            cursor.move_up()
+        elif k == curses.KEY_DOWN:
+            cursor.move_down()
+        elif k == curses.KEY_LEFT:
+            cursor.move_left()
+        elif k == curses.KEY_RIGHT:
+            cursor.move_right()
+        else:
+            grid.poke(cursor.x, cursor.y, chr(k))
 
         render_top_banner()
         screen.refresh()
 
         clear_window()
         render_grid(window, grid)
+        draw_cursor(grid, cursor)
 
         window.refresh()
 

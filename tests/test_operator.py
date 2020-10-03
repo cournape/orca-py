@@ -2,10 +2,43 @@ import math
 import unittest
 
 from orca.grid import OrcaGrid
-from orca.operators import Add, Clock, Generator, Increment, Substract
+from orca.operators import IOperator, Add, Clock, Generator, Increment, Substract
 
 
 O = OrcaGrid.from_string
+
+class BaseOperator(IOperator):
+    def operation(self):
+        pass
+
+
+class TestBaseOperator(unittest.TestCase):
+    def test_has_neighbor(self):
+        # Given
+        grid = O("123\n4+6\n789")
+        op = BaseOperator(grid, 1, 1, "base", "base op")
+
+        # When/Then
+        for diag in range(1, 10, 2):
+            assert not op.has_neighbor(str(diag))
+
+        # When/Then
+        for diag in range(2, 10, 2):
+            assert op.has_neighbor(str(diag))
+
+    def test_move(self):
+        # Given
+        grid = O("+..\n...\n...")
+        new_glyph = "本"
+        offset_x, offset_y = 1, 2
+
+        op = BaseOperator(grid, 0, 0, "base", "base op", glyph=new_glyph)
+
+        # When
+        op.move(offset_x, offset_y)
+
+        # Then
+        assert grid.peek(offset_x, offset_y) == new_glyph
 
 
 class TestAddOperator(unittest.TestCase):

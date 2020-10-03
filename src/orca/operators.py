@@ -61,7 +61,7 @@ class IOperator(abc.ABC):
         output_port = self._output_port
         if output_port:
             if output_port.is_bang:
-                raise ValueError("Output bang not implemented yet")
+                self._bang(payload)
             else:
                 self._output(payload)
 
@@ -114,6 +114,15 @@ class IOperator(abc.ABC):
                 return False
             else:
                 return True
+
+    def _bang(self, payload):
+        output_port = self._output_port
+        if output_port is None:
+            logger.warn("Trying to bang, but no output port.")
+            return
+        else:
+            glyph = BANG_GLYPH if payload else DOT_GLYPH
+            self._grid.poke(output_port.x, output_port.y, glyph)
 
     def _output(self, glyph, port=None):
         if port is None:
@@ -208,6 +217,34 @@ class Clock(IOperator):
 
         value = math.floor(frame / rate) % mod
         return self._grid.key_of(value)
+
+
+class Delay(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "delay",
+            "Bangs on module of frame",
+            glyph="d",
+            is_passive=is_passive,
+        )
+
+        self.ports.update(
+            {
+                "rate": InputPort(x - 1, y, clamp=lambda x: max(1, x)),
+                "mod": InputPort(x + 1, y, default="8"),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1, is_bang=True),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        rate = self._grid.listen_as_value(self.ports["rate"])
+        mod = self._grid.listen_as_value(self.ports["mod"])
+
+        value = frame % (mod * rate)
+        return value == 0 or mod == 1
 
 
 class East(IOperator):

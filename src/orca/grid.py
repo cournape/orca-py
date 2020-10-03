@@ -136,7 +136,7 @@ class OrcaGrid:
         return iter(self._state)
 
     def reset_for_frame(self):
-        """ This method should be called before starting any grid-related
+        """This method should be called before starting any grid-related
         operation for a new frame.
         """
         self.reset_locks()

@@ -2,7 +2,7 @@ import abc
 import logging
 import math
 
-from orca.grid import BANG_GLYPH, DOT_GLYPH, MidiNoteOnEvent
+from orca.grid import BANG_GLYPH, COMMENT_GLYPH, DOT_GLYPH, MidiNoteOnEvent
 from orca.ports import InputPort, OutputPort
 
 
@@ -301,6 +301,22 @@ class Bang(IOperator):
     def operation(self, frame, force=False):
         self.do_draw = False
         self.erase()
+
+
+class Comment(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid, x, y, "comment", "Halts line", glyph=COMMENT_GLYPH,
+            is_passive=is_passive
+        )
+        self.do_draw = False
+
+    def operation(self, frame, force=False):
+        self._grid.lock(self.x, self.y)
+        for x in range(self.x + 1, self._grid.cols):
+            self._grid.lock(x, self.y)
+            if self._grid.peek(x, self.y) == self.glyph:
+                break
 
 
 _NOTES_VALUES = (

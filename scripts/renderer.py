@@ -4,7 +4,7 @@ import curses
 import logging
 import sys
 
-from orca.grid import BANG_GLYPH, DOT_GLYPH, EMPTY_GLYPH, OrcaGrid
+from orca.grid import BANG_GLYPH, COMMENT_GLYPH, DOT_GLYPH, EMPTY_GLYPH, OrcaGrid
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def init_colors():
     pass
 
 
-from orca.operators import Add, Bang, Clock, East, Generator, Increment, Substract, Midi
+from orca.operators import Add, Bang, Clock, Comment, East, Generator, Increment, Substract, Midi
 
 _CHAR_TO_OPERATOR_CLASS = {
     "a": Add,
@@ -47,7 +47,7 @@ _CHAR_TO_OPERATOR_CLASS = {
     "i": Increment,
     BANG_GLYPH: Bang,
     ":": Midi,
-    # COMMENT_GLYPH: Comment,
+    COMMENT_GLYPH: Comment,
 }
 
 

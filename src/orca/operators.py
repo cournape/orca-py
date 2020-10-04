@@ -106,12 +106,12 @@ class IOperator(abc.ABC):
 
     def _should_upper_case(self):
         output_port = self._output_port
-        if output_port is None or output_port.is_sensitive:
+        if output_port is None or not output_port.is_sensitive:
             return False
         else:
             right_port = InputPort(self.x + 1, self.y)
             value = self._grid.listen(right_port)
-            if value.lower() == value.upper() or value.upper() == value:
+            if value.lower() == value.upper() or value.upper() != value:
                 return False
             else:
                 return True

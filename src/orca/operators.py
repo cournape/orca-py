@@ -371,6 +371,30 @@ class Increment(IOperator):
         return self._grid.key_of((out + step) % (mod if mod > 0 else 36))
 
 
+class Jumper(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "j",
+            "Outputs northward operator",
+            glyph="f",
+            is_passive=is_passive,
+        )
+
+        self.ports.update(
+            {
+                "val": InputPort(x, y - 1),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        self._grid.lock(self._output_port.x, self._output_port.y)
+        return self._grid.listen(self.ports["val"])
+
+
 class Multiply(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(

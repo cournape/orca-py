@@ -319,6 +319,32 @@ class Halt(IOperator):
         self._grid.lock(self.x, self.y + 1)  # self._output_port.x, self._output_port.y)
 
 
+class If(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "if",
+            "Bang if inputs are equal",
+            glyph="f",
+            is_passive=is_passive,
+        )
+
+        self.ports.update(
+            {
+                "a": InputPort(x - 1, y),
+                "b": InputPort(x + 1, y),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1, is_bang=True),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        a = self._grid.listen(self.ports["a"])
+        b = self._grid.listen(self.ports["b"])
+        return a == b
+
+
 class Increment(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(

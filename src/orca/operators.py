@@ -1,6 +1,7 @@
 import abc
 import logging
 import math
+import random
 
 from orca.grid import BANG_GLYPH, COMMENT_GLYPH, DOT_GLYPH, MidiNoteOnEvent
 from orca.ports import InputPort, OutputPort
@@ -344,6 +345,34 @@ class North(IOperator):
     def operation(self, frame, force=False):
         self.move(0, -1)
         self.is_passive = False
+
+
+class Random(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "random",
+            "Outputs random value",
+            glyph="r",
+            is_passive=is_passive,
+        )
+
+        self.ports.update(
+            {
+                "min": InputPort(x - 1, y),
+                "max": InputPort(x + 1, y),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1, is_sensitive=True),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        low = self._grid.listen_as_value(self.ports["min"])
+        high = self._grid.listen_as_value(self.ports["max"])
+
+        value = random.randint(low, high)
+        return self._grid.key_of(value)
 
 
 class South(IOperator):

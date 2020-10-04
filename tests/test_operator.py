@@ -2,10 +2,19 @@ import math
 import unittest
 
 from orca.grid import OrcaGrid
-from orca.operators import IOperator, Add, Clock, Generator, Increment, Substract
+from orca.operators import (
+    IOperator,
+    Add,
+    Clock,
+    Generator,
+    Increment,
+    Multiply,
+    Substract,
+)
 
 
 O = OrcaGrid.from_string
+
 
 class BaseOperator(IOperator):
     def operation(self):
@@ -187,3 +196,46 @@ class TestIncrementOperator(unittest.TestCase):
 
         # then
         assert payload == "3"
+
+
+class TestMultiplyOperator(unittest.TestCase):
+    def test_operation(self):
+        # Given
+        grid = O("2M2\n...")
+        m = Multiply(grid, 1, 0)
+
+        # When
+        payload = m.operation(0)
+
+        # Then
+        assert payload == "4"
+
+        # Given
+        grid = O(".M2\n...")
+        m = Multiply(grid, 1, 0)
+
+        # When
+        payload = m.operation(0)
+
+        # Then
+        assert payload == "0"
+
+        # Given
+        grid = O("3MB\n...")
+        m = Multiply(grid, 1, 0)
+
+        # When
+        payload = m.operation(0)
+
+        # Then
+        assert payload == "x"
+
+        # Given
+        grid = O("2Ma\n...")
+        m = Multiply(grid, 1, 0)
+
+        # When
+        payload = m.operation(0)
+
+        # Then
+        assert payload == "k"

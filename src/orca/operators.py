@@ -306,11 +306,17 @@ class Generator(IOperator):
 class Halt(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(
-            grid, x, y, "half", "Halts southward operator", glyph="h", is_passive=is_passive
+            grid,
+            x,
+            y,
+            "half",
+            "Halts southward operator",
+            glyph="h",
+            is_passive=is_passive,
         )
 
     def operation(self, frame, force=False):
-        self._grid.lock(self.x, self.y + 1) #self._output_port.x, self._output_port.y)
+        self._grid.lock(self.x, self.y + 1)  # self._output_port.x, self._output_port.y)
 
 
 class Increment(IOperator):
@@ -337,6 +343,32 @@ class Increment(IOperator):
         mod = self._grid.listen_as_value(self.ports["mod"])
         out = self._grid.listen_as_value(self.ports[OUTPUT_PORT_NAME])
         return self._grid.key_of((out + step) % (mod if mod > 0 else 36))
+
+
+class Multiply(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "multiply",
+            "Output multiplication of inputs",
+            glyph="m",
+            is_passive=is_passive,
+        )
+
+        self.ports.update(
+            {
+                "a": InputPort(x - 1, y),
+                "b": InputPort(x + 1, y),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1, is_sensitive=True),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        a = self._grid.listen_as_value(self.ports["a"])
+        b = self._grid.listen_as_value(self.ports["b"])
+        return self._grid.key_of(a * b)
 
 
 class North(IOperator):
@@ -414,11 +446,13 @@ class Track(IOperator):
             glyph="t",
             is_passive=is_passive,
         )
-        self.ports.update({
-            "key": InputPort(x - 2, y),
-            "len": InputPort(x - 1, y, clamp=lambda x: max(1, x)),
-            OUTPUT_PORT_NAME: OutputPort(x, y + 1),
-        })
+        self.ports.update(
+            {
+                "key": InputPort(x - 2, y),
+                "len": InputPort(x - 1, y, clamp=lambda x: max(1, x)),
+                OUTPUT_PORT_NAME: OutputPort(x, y + 1),
+            }
+        )
 
     def operation(self, frame, force=False):
         key = self._grid.listen_as_value(self.ports["key"])

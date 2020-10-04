@@ -187,7 +187,8 @@ def update_grid(grid, frame):
                 operator,
             )
             continue
-        operator.run(frame)
+        if operator.is_passive or operator.has_neighbor(BANG_GLYPH):
+            operator.run(frame)
 
 
 def render_grid(window, grid):

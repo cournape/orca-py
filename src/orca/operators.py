@@ -303,6 +303,16 @@ class Generator(IOperator):
             self._output(res, output_port)
 
 
+class Halt(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid, x, y, "half", "Halts southward operator", glyph="h", is_passive=is_passive
+        )
+
+    def operation(self, frame, force=False):
+        self._grid.lock(self.x, self.y + 1) #self._output_port.x, self._output_port.y)
+
+
 class Increment(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(

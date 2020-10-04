@@ -115,6 +115,7 @@ from orca.operators import (
     Random,
     South,
     Substract,
+    Track,
     Midi,
     West,
 )
@@ -130,6 +131,7 @@ _CHAR_TO_OPERATOR_CLASS = {
     "n": North,
     "r": Random,
     "s": South,
+    "t": Track,
     "w": West,
     BANG_GLYPH: Bang,
     ":": Midi,

@@ -393,6 +393,34 @@ class South(IOperator):
         self.is_passive = False
 
 
+class Track(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "track",
+            "Reads eastward operand",
+            glyph="t",
+            is_passive=is_passive,
+        )
+        self.ports.update({
+            "key": InputPort(x - 2, y),
+            "len": InputPort(x - 1, y, clamp=lambda x: max(1, x)),
+            OUTPUT_PORT_NAME: OutputPort(x, y + 1),
+        })
+
+    def operation(self, frame, force=False):
+        key = self._grid.listen_as_value(self.ports["key"])
+        length = self._grid.listen_as_value(self.ports["len"])
+
+        for offset in range(length):
+            self._grid.lock(self.x + offset + 1, self.y)
+
+        port = InputPort(self.x + 1 + key % length, self.y)
+        return self._grid.listen(port)
+
+
 class West(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(

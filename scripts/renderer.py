@@ -120,6 +120,7 @@ from orca.operators import (
     South,
     Substract,
     Track,
+    Jymper,
     Midi,
     West,
 )
@@ -141,6 +142,7 @@ _CHAR_TO_OPERATOR_CLASS = {
     "s": South,
     "t": Track,
     "w": West,
+    "y": Jymper,
     BANG_GLYPH: Bang,
     ":": Midi,
     COMMENT_GLYPH: Comment,

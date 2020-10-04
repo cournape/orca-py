@@ -533,6 +533,30 @@ class West(IOperator):
         self.is_passive = False
 
 
+class Jymper(IOperator):
+    def __init__(self, grid, x, y, *, is_passive=False):
+        super().__init__(
+            grid,
+            x,
+            y,
+            "y",
+            "Outputs westward operator",
+            glyph="y",
+            is_passive=is_passive,
+        )
+
+        self.ports.update(
+            {
+                "val": InputPort(x - 1, y),
+                OUTPUT_PORT_NAME: OutputPort(x + 1, y),
+            }
+        )
+
+    def operation(self, frame, force=False):
+        self._grid.lock(self._output_port.x, self._output_port.y)
+        return self._grid.listen(self.ports["val"])
+
+
 class Bang(IOperator):
     def __init__(self, grid, x, y, *, is_passive=False):
         super().__init__(
